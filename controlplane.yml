@@ -1,0 +1,28 @@
+- name: Setup K3S on Control Plane Node
+  hosts: controlplane
+  tasks:
+    - name: Enabling memory cgroups in ARM64 devices
+      become: true
+      when: ansible_architecture == "aarch64"
+      block:
+        - name: Checking if cgroup is already enabled
+          shell: grep -q "cgroup_memory" "/boot/cmdline.txt"; echo $?
+          register: cgroup_enabled
+
+        - name: Enabling cgroup
+          when: cgroup_enabled == 1
+          shell: echo ' cgroup_memory=1 cgroup_enable=memory' >> /boot/cmdline.txt
+
+    - name: Setting up K3S in Control Node
+      become: true
+      block:
+        - name: Install K3S
+          shell: curl -sfL https://get.k3s.io | sh -
+
+        - name: Get Control Node Token
+          shell: cat /var/lib/rancher/k3s/server/node-token
+          register: controlnode_token
+
+        - name: K3s installed successfully!
+          debug: 
+            msg: '{{ controlnode_token.stdout }}'

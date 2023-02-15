@@ -1,0 +1,46 @@
+- name: Setup K3S and Rancher into Cluster
+  hosts: workernodes
+
+  vars_prompt:
+    - name: control_plane_ip
+      prompt: Control Plane Node IP
+      private: no
+
+    - name: token
+      prompt: Control Plane Node Token
+      private: no
+
+  vars:
+    myip: '{{ ansible_all_ipv4_addresses[0] }}'
+
+  tasks:
+    - name: Install curl
+      become: true
+      apt:
+        name: curl
+
+    - name: Enabling memory cgroups
+      when: ansible_architecture == 'aarch64'
+      become: true
+      block:
+        - name: Checking if cgroup is already enabled
+          shell: grep -q "cgroup_memory" "/boot/cmdline.txt"; echo $?
+          register: cgroup_enabled
+
+        - name: Enabling cgroup
+          when: cgroup_enabled == 1
+          shell: echo ' cgroup_memory=1 cgroup_enable=memory' >> /boot/cmdline.txt
+
+    - name: Print worker number
+      shell: 'MYIP={{ myip }}; echo ${MYIP:11:13}'
+      args:
+        executable: /bin/bash
+      register: worker_number
+
+    - name: Worker number
+      debug:
+        msg: 'worker-{{ worker_number.stdout }}'
+
+    - name: Setting up Worker Nodes
+      become: true
+      shell: 'curl -sfL https://get.k3s.io | K3S_TOKEN="{{ token }}" K3S_URL="https://{{ control_plane_ip }}:6443" K3S_NODE_NAME="worker-{{ worker_number.stdout }}" sh - '
