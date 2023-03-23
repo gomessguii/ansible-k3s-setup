@@ -1,5 +1,7 @@
 # Ansible K3s Setup
-This repository contain an Ansible playbook to setup a Kubernetes cluster with K3s.
+This repository contain an Ansible playbook to setup a Kubernetes cluster with K3s. </br>
+It was built and tested on Raspberry Pies and there may be some compatibility issues. </br>
+Feel free to open an issue if find any problems.
 
 ## Prerequisites
 To successfully deploy your cluster you'll need a linux computer with the ansible tool installed
