@@ -1,18 +1,19 @@
 # Ansible K3s Setup
-This repository contain an Ansible playbook to setup a Kubernetes cluster with K3s. </br>
+This repository contains an Ansible playbook to setup a Kubernetes cluster with K3s. </br>
 It was built and tested on Raspberry Pies and there may be some compatibility issues. </br>
 Feel free to open an issue if find any problems.
 
 ## Prerequisites
 To successfully deploy your cluster you'll need a linux computer with the ansible tool installed
-Use `apt-get install ansible` for Ubuntu, `dnf install ansible` for Fedora or for any other distro use:
+Use `apt-get install ansible` for Ubuntu, `dnf install ansible` for Fedora, and for any other distro use:
 ```
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python3 get-pip.py --user
 ```
-> Windows not supported
+> Windows is not supported
 
-Also the hosts (aka the computers you intend to setup the cluster on) need python installed, and you need to make sure all of them are acessible through SSH from the control node (aka the computer you're running the playbook from). Therefore install python and openssh-server if not already installed and make the firts  SSH connection, or simply run `ssh-copy-id user@192.168.1.2` to copy the SSH key of the hosts to the control node `known_hosts` file located at `$HOME/.ssh/`
+Also, the hosts (aka the cluster nodes) need python, and you need to make sure all of them are acessible through SSH from the control node (aka the computer you're running the playbook from). Therefore install python and openssh-server if not already installed and make the firt SSH connection on each node, or simply run `ssh-copy-id user@192.168.1.2` to copy the SSH key of the hosts to the control node's `known_hosts` file located at `$HOME/.ssh/`
+[Problems setting those up?](#troubleshoot)
 
 ## How to Run
 
@@ -31,27 +32,35 @@ worker01 ansible_host=192.168.1.21 ansible_user=worker ansible_ssh_pass=123456
 ~~~ batch
 ansible-playbook controlplane.yml -i inventory.ini  --ask-become-pass
 ~~~
-Copy the token printed, you will need it
+The root password of the host will be required.
+
+Copy the token printed at the end, you will need it
 
 3. To install K3s and register the control plane on your worker nodes run this:
 
 ~~~ batch
 ansible-playbook workers.yml -i inventory.ini  --ask-become-pass
 ~~~
+The root password of the hosts will be required.
 
-Provide the Control Plane IP and token as requested.
+Also provide the Control Plane node IP and the token copied previously.
 
-Now your K3s cluster should be set and ready to go.
+Now your K3s cluster should be up and ready to go.
+
 Copy the kube config file from the control plane node in `/etc/rancher/k3s/k3s.yaml`
 
 :ocean: Happy Kubing! :boat:
 
+<br>
+
+---
+
 ## Troubleshoot
-If you receiving a connection error such as "unknown host", run 
+If you receiving a connection error such as "unknown host", try running 
 ```
 ssh-copy-id user@192.168.1.2
 ``` 
-and try connecting to the hosts via SSH with
+then check if you can connect to the host via SSH with
 ```
 ssh user@192.168.1.2
 ```
